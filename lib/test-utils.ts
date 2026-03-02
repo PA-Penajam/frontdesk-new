@@ -13,7 +13,7 @@ export function getTestDb() {
   
   try {
     // Try to read schema from file first
-    const schemaPath = path.resolve(process.cwd(), 'scripts/schema.sql');
+    const schemaPath = path.resolve(process.cwd(), 'scripts', 'schema.sql');
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
     db.exec(schemaSql);
   } catch (error) {
@@ -77,7 +77,16 @@ export function seedTestData(db: import('better-sqlite3').Database, records: Par
   
   const transaction = db.transaction((transRecords: typeof records) => {
     for (const record of transRecords) {
-      insertStmt.run(record);
+      // Ensure all optional parameters are explicitly defined to avoid missing parameter errors
+      const fullRecord = {
+        alamat: null,
+        instansi: null,
+        hp: null,
+        tanggal: new Date().toISOString().split('T')[0],
+        old_id: null,
+        ...record
+      };
+      insertStmt.run(fullRecord);
     }
   });
   
