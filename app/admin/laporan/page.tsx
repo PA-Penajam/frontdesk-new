@@ -151,6 +151,54 @@ export default function LaporanPage() {
                 ))}
               </div>
             </div>
+            {/* Record Table */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Daftar Tamu/Pengunjung</h3>
+              <div className="overflow-x-auto max-h-96 overflow-y-auto border rounded-md">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-100 sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2">No</th>
+                      <th className="px-3 py-2">Nama</th>
+                      <th className="px-3 py-2">Instansi/Alamat</th>
+                      <th className="px-3 py-2">HP</th>
+                      <th className="px-3 py-2">Tujuan</th>
+                      <th className="px-3 py-2">Jenis Tamu</th>
+                      <th className="px-3 py-2">Tanggal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.records.length > 0 ? (
+                      stats.records.map((record, index) => (
+                        <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-3 py-2">{index + 1}</td>
+                          <td className="px-3 py-2">{record.nama}</td>
+                          <td className="px-3 py-2">{record.jenis_tamu === 'tamu' ? (record.instansi || '-') : (record.alamat || '-')}</td>
+                          <td className="px-3 py-2">{record.hp || '-'}</td>
+                          <td className="px-3 py-2">{record.tujuan}</td>
+                          <td className="px-3 py-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              record.jenis_tamu === 'tamu' 
+                                ? 'bg-blue-100 text-blue-800' 
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {record.jenis_tamu === 'tamu' ? 'Tamu' : 'Pengunjung'}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
+                          Tidak ada data
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
             {/* Download Buttons */}
             <div className="flex gap-3">
