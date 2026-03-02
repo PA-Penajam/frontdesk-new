@@ -56,3 +56,11 @@
 - Middleware runs in Edge runtime: Use `request.cookies` instead of `cookies()` from next/headers (which is not available in Edge)
 - Simple cookie existence check is sufficient for middleware auth guard
 - Admin layout uses shadcn/ui Sidebar component with dark theme (slate-900) and gradient header
+
+## Task 11: Buku Tamu Form Page
+- Created `app/buku-tamu/page.tsx` with `react-hook-form` and `zodResolver`.
+- Implemented form fields: `nama`, `instansi`, `hp`, `tujuan`.
+- Used `createTamu` server action for submission.
+- Added success/error handling with `sonner` toast.
+- Updated `app/page.tsx` to link to the new page.
+- Verified build passes.
