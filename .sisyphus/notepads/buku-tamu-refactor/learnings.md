@@ -43,3 +43,16 @@
 - lib/__tests__/actions-auth.test.ts: TDD tests untuk server actions
 
 **Build:** Gagal karena unrelated TypeScript error di scripts/migrate.ts (property count pada object {}).
+## Task 13: Admin Layout + Auth Guard Middleware
+
+- **Created `middleware.ts` at project root**: Auth guard that protects `/admin/*` routes by checking for the presence of `admin-session` cookie. If not present, redirects to `/login`.
+- **Created `app/admin/layout.tsx`**: Admin sidebar layout using shadcn/ui Sidebar component with navigation links:
+  - Daftar Tamu → `/admin/daftar-tamu`
+  - Daftar Pengunjung → `/admin/daftar-pengunjung`
+  - Cetak Laporan → `/admin/cetak-laporan`
+  - Logout button calling `logoutAction` from lib/actions-auth.ts
+
+**Key Notes**:
+- Middleware runs in Edge runtime: Use `request.cookies` instead of `cookies()` from next/headers (which is not available in Edge)
+- Simple cookie existence check is sufficient for middleware auth guard
+- Admin layout uses shadcn/ui Sidebar component with dark theme (slate-900) and gradient header
