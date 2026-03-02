@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TujuanPengunjung } from './types';
+
 
 export const tamuFormSchema = z.object({
   nama: z.string().min(1, 'Nama harus diisi'),
@@ -13,7 +13,7 @@ export const pengunjungFormSchema = z.object({
   alamat: z.string().optional(),
   hp: z.string().optional(),
   tujuan: z.enum(['Informasi Perkara', 'Pengaduan', 'Pendaftaran Perkara', 'Menghadiri Sidang', 'Pengambilan Produk', 'Lainnya'], {
-    errorMap: () => ({ message: 'Tujuan harus dipilih' }),
+    message: 'Tujuan harus dipilih',
   }),
 });
 
