@@ -43,7 +43,7 @@ export function getTestDb() {
  * @param db The connected Database instance
  * @param records Array of partial Tamu records to insert
  */
-export function seedTestData(db: Database, records: Partial<{
+export function seedTestData(db: import('better-sqlite3').Database, records: Partial<{
   jenis_tamu: 'tamu' | 'pengunjung';
   nama: string;
   alamat?: string;
@@ -75,7 +75,7 @@ export function seedTestData(db: Database, records: Partial<{
     )
   `);
   
-  const transaction = db.transaction((transRecords) => {
+  const transaction = db.transaction((transRecords: typeof records) => {
     for (const record of transRecords) {
       insertStmt.run(record);
     }
