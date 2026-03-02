@@ -22,3 +22,24 @@
 - better-sqlite3 API reference
 - Vitest testing framework
 - Zod validation library
+
+## Task 8: Login Page & Auth Server Actions
+
+**Implementasi:** Login page dengan React Hook Form + Zod untuk validasi, dan server actions dengan Session Cookie.
+
+**Key Learnings:**
+1. Server Actions harus diannotasikan dengan 'use server' dan tidak boleh memanggil redirect() di dalamnya jika ingin diuji (karena akan melempar exception di context test).
+2. Mocking dependencies di Vitest untuk Server Actions:
+   - Gunakan vi.mock untuk module eksternal (next/navigation, next/headers)
+   - Gunakan vi.mock untuk internal modules (lib/auth)
+   - Clear all mocks sebelum setiap test dengan beforeEach() untuk menghindari tumpang tindih
+3. React Hook Form + Zod Resolver adalah kombinasi yang powerful untuk form validation dengan type safety.
+4. Session management dengan HttpOnly cookies lebih aman daripada localStorage, karena tidak bisa diakses oleh JavaScript di browser.
+5. Penting untuk menampilkan loading state pada form submit untuk pengalaman user yang baik.
+
+**File created/modified:**
+- app/login/page.tsx: Client component login dengan RHF + Zod
+- lib/actions-auth.ts: Server actions login dan logout
+- lib/__tests__/actions-auth.test.ts: TDD tests untuk server actions
+
+**Build:** Gagal karena unrelated TypeScript error di scripts/migrate.ts (property count pada object {}).
