@@ -14,7 +14,7 @@ export function createSession(): string {
 }
 
 export async function setSessionCookie(token: string): Promise<void> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.set('admin-session', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -25,15 +25,14 @@ export async function setSessionCookie(token: string): Promise<void> {
 }
 
 export async function getSession(): Promise<string | null> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   return cookieStore.get('admin-session')?.value || null
 }
 
 export async function clearSession(): Promise<void> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.delete('admin-session')
 }
-
 export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession()
   return !!session && session.trim() !== ''
