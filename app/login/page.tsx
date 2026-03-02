@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { loginSchema } from '@/lib/schemas'
 import { loginAction } from '@/lib/actions-auth'
 import type { LoginInput } from '@/lib/schemas'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -32,6 +33,7 @@ export default function LoginPage() {
     try {
       const result = await loginAction(data)
       if (result.success) {
+        toast.success('Login berhasil!')
         router.push('/admin/daftar-tamu')
       } else {
         setError(result.message)

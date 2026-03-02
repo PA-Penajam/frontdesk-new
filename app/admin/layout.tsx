@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Sidebar,
   SidebarContent,
@@ -53,9 +55,9 @@ export default function AdminLayout({
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <Link href="/admin/cetak-laporan">
+                    <Link href="/admin/laporan">
                       <FileText className="size-4" />
-                      <span>Cetak Laporan</span>
+                      <span>Laporan</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
