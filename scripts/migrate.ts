@@ -100,8 +100,8 @@ export function runMigration(
   transaction(records);
 
   // Count inserted records
-  const tamuCount = db.prepare('SELECT COUNT(*) as count FROM tamu WHERE jenis_tamu = ?').get('tamu')?.count as number;
-  const pengunjungCount = db.prepare('SELECT COUNT(*) as count FROM tamu WHERE jenis_tamu = ?').get('pengunjung')?.count as number;
+  const tamuCount = (db.prepare('SELECT COUNT(*) as count FROM tamu WHERE jenis_tamu = ?').get('tamu') as { count: number }).count;
+  const pengunjungCount = (db.prepare('SELECT COUNT(*) as count FROM tamu WHERE jenis_tamu = ?').get('pengunjung') as { count: number }).count;
 
   return {
     totalInserted: records.length,
