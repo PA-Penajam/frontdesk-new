@@ -4,6 +4,28 @@ import { useState, useEffect } from 'react';
 import { getMonthlyStats } from '@/lib/actions';
 import type { MonthlyStats } from '@/lib/types';
 import type { JenisTamu } from '@/lib/types';
+import { AdminPageWrapper } from '@/components/admin/admin-page-wrapper';
+import { StatCard } from '@/components/admin/stat-card';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Users, UserCheck, FileText } from 'lucide-react';
 
 // Indonesian month names
 const monthNames = [
@@ -67,240 +89,256 @@ export default function LaporanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Laporan Buku Tamu Bulanan</h1>
-
-        {/* Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Bulan
-              </label>
-              <select
-                value={month}
-                onChange={(e) => setMonth(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+    <AdminPageWrapper
+      title="Laporan Buku Tamu Bulanan"
+      description="Preview dan export laporan buku tamu bulanan"
+      actions={
+        stats && !isLoading && (
+          <>
+            <Button onClick={() => handleDownload('pdf')} variant="destructive">
+              Export PDF
+            </Button>
+            <Button onClick={() => handleDownload('xlsx')} variant="default" className="bg-green-600 hover:bg-green-700">
+              Export Excel
+            </Button>
+          </>
+        )
+      }
+    >
+      {/* Filter Section */}
+      <div className="bg-card rounded-lg border shadow-sm p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium mb-1">
+              Bulan
+            </label>
+            <Select value={month.toString()} onValueChange={(value) => setMonth(parseInt(value))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih bulan" />
+              </SelectTrigger>
+              <SelectContent>
                 {monthNames.slice(1).map((name, index) => (
-                  <option key={index + 1} value={index + 1}>
+                  <SelectItem key={index + 1} value={(index + 1).toString()}>
                     {name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-            </div>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="flex-1 min-w-[150px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tahun
-              </label>
-              <input
-                type="number"
-                value={year}
-                onChange={(e) => setYear(parseInt(e.target.value))}
-                min={2000}
-                max={2100}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm font-medium mb-1">
+              Tahun
+            </label>
+            <Input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(parseInt(e.target.value))}
+              min={2000}
+              max={2100}
+              className="w-full"
+            />
+          </div>
 
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Jenis
-              </label>
-              <select
-                value={jenis}
-                onChange={(e) => setJenis(e.target.value as JenisTamu | '')}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Semua</option>
-                <option value="tamu">Tamu</option>
-                <option value="pengunjung">Pengunjung</option>
-              </select>
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium mb-1">
+              Jenis
+            </label>
+            <Select value={jenis} onValueChange={(value) => setJenis(value as JenisTamu | '')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Semua jenis" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Semua</SelectItem>
+                <SelectItem value="tamu">Tamu</SelectItem>
+                <SelectItem value="pengunjung">Pengunjung</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="bg-card rounded-lg border shadow-sm p-6 mb-6">
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-8 w-48" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </div>
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      )}
+
+      {/* Stats Preview */}
+      {!isLoading && stats && (
+        <div className="bg-card rounded-lg border shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">
+            Preview Laporan {jenis === 'tamu' ? 'Tamu' : jenis === 'pengunjung' ? 'Pengunjung' : 'Buku Tamu'} Bulan {monthNames[month]} {year}
+          </h2>
+
+          {/* Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <StatCard
+              title="Total Tamu"
+              value={stats.totalTamu}
+              icon={Users}
+              className="bg-blue-50 dark:bg-blue-950/20"
+            />
+            <StatCard
+              title="Total Pengunjung"
+              value={stats.totalPengunjung}
+              icon={UserCheck}
+              className="bg-green-50 dark:bg-green-950/20"
+            />
+            <StatCard
+              title="Total Seluruh"
+              value={stats.records.length}
+              icon={FileText}
+              className="bg-yellow-50 dark:bg-yellow-950/20"
+            />
+          </div>
+
+          {/* Tujuan Breakdown */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-2">Tujuan Pengunjung</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {Object.entries(stats.tujuanSummary).map(([tujuan, count]) => (
+                <div key={tujuan} className="flex justify-between items-center bg-muted/50 p-2 rounded-md">
+                  <span className="text-sm text-muted-foreground">{tujuan}</span>
+                  <span className="text-sm font-semibold">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Record Table */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-2">
+              {jenis === 'tamu'
+                ? 'Daftar Tamu'
+                : jenis === 'pengunjung'
+                  ? 'Daftar Pengunjung'
+                  : 'Daftar Tamu dan Pengunjung (Terpisah)'}
+            </h3>
+            <div className="overflow-x-auto max-h-96 overflow-y-auto border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">No</TableHead>
+                    <TableHead>Nama</TableHead>
+                    <TableHead>Instansi/Alamat</TableHead>
+                    <TableHead>HP</TableHead>
+                    <TableHead>Tujuan</TableHead>
+                    <TableHead>Jenis Tamu</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.records.length > 0 ? (
+                    jenis ? (
+                      stats.records.map((record, index) => (
+                        <TableRow key={record.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell className="font-medium">{record.nama}</TableCell>
+                          <TableCell>{record.jenis_tamu === 'tamu' ? (record.instansi || '-') : (record.alamat || '-')}</TableCell>
+                          <TableCell>{record.hp || '-'}</TableCell>
+                          <TableCell>{record.tujuan}</TableCell>
+                          <TableCell>
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                              record.jenis_tamu === 'tamu'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            }`}>
+                              {record.jenis_tamu === 'tamu' ? 'Tamu' : 'Pengunjung'}
+                            </span>
+                          </TableCell>
+                          <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <>
+                        <TableRow className="bg-blue-50 dark:bg-blue-950/20">
+                          <TableCell colSpan={7} className="font-semibold text-blue-900 dark:text-blue-100">Data Tamu</TableCell>
+                        </TableRow>
+                        {tamuRecords.length > 0 ? tamuRecords.map((record, index) => (
+                          <TableRow key={record.id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell className="font-medium">{record.nama}</TableCell>
+                            <TableCell>{record.instansi || '-'}</TableCell>
+                            <TableCell>{record.hp || '-'}</TableCell>
+                            <TableCell>{record.tujuan}</TableCell>
+                            <TableCell>
+                              <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                Tamu
+                              </span>
+                            </TableCell>
+                            <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
+                          </TableRow>
+                        )) : (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
+                              Tidak ada data tamu
+                            </TableCell>
+                          </TableRow>
+                        )}
+
+                        <TableRow className="bg-green-50 dark:bg-green-950/20">
+                          <TableCell colSpan={7} className="font-semibold text-green-900 dark:text-green-100">Data Pengunjung</TableCell>
+                        </TableRow>
+                        {pengunjungRecords.length > 0 ? pengunjungRecords.map((record, index) => (
+                          <TableRow key={record.id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell className="font-medium">{record.nama}</TableCell>
+                            <TableCell>{record.alamat || '-'}</TableCell>
+                            <TableCell>{record.hp || '-'}</TableCell>
+                            <TableCell>{record.tujuan}</TableCell>
+                            <TableCell>
+                              <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                Pengunjung
+                              </span>
+                            </TableCell>
+                            <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
+                          </TableRow>
+                        )) : (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
+                              Tidak ada data pengunjung
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    )
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
+                        Tidak ada data
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700">
-            {error}
-          </div>
-        )}
-
-        {/* Loading */}
-        {isLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-600">Memuat data...</p>
-          </div>
-        )}
-
-        {/* Stats Preview */}
-        {!isLoading && stats && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Preview Laporan {jenis === 'tamu' ? 'Tamu' : jenis === 'pengunjung' ? 'Pengunjung' : 'Buku Tamu'} Bulan {monthNames[month]} {year}
-            </h2>
-
-            {/* Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-md">
-                <p className="text-sm text-blue-600 mb-1">Total Tamu</p>
-                <p className="text-2xl font-bold text-blue-900">{stats.totalTamu}</p>
-              </div>
-
-              <div className="bg-green-50 p-4 rounded-md">
-                <p className="text-sm text-green-600 mb-1">Total Pengunjung</p>
-                <p className="text-2xl font-bold text-green-900">{stats.totalPengunjung}</p>
-              </div>
-
-              <div className="bg-yellow-50 p-4 rounded-md">
-                <p className="text-sm text-yellow-600 mb-1">Total Seluruh</p>
-                <p className="text-2xl font-bold text-yellow-900">{stats.records.length}</p>
-              </div>
-            </div>
-
-            {/* Tujuan Breakdown */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Tujuan Pengunjung</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {Object.entries(stats.tujuanSummary).map(([tujuan, count]) => (
-                  <div key={tujuan} className="flex justify-between items-center bg-gray-50 p-2 rounded-md">
-                    <span className="text-sm text-gray-700">{tujuan}</span>
-                    <span className="text-sm font-semibold text-gray-900">{count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Record Table */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">
-                {jenis === 'tamu'
-                  ? 'Daftar Tamu'
-                  : jenis === 'pengunjung'
-                    ? 'Daftar Pengunjung'
-                    : 'Daftar Tamu dan Pengunjung (Terpisah)'}
-              </h3>
-              <div className="overflow-x-auto max-h-96 overflow-y-auto border rounded-md">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-100 sticky top-0">
-                    <tr>
-                      <th className="px-3 py-2">No</th>
-                      <th className="px-3 py-2">Nama</th>
-                      <th className="px-3 py-2">Instansi/Alamat</th>
-                      <th className="px-3 py-2">HP</th>
-                      <th className="px-3 py-2">Tujuan</th>
-                      <th className="px-3 py-2">Jenis Tamu</th>
-                      <th className="px-3 py-2">Tanggal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.records.length > 0 ? (
-                      jenis ? (
-                        stats.records.map((record, index) => (
-                          <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                            <td className="px-3 py-2">{index + 1}</td>
-                            <td className="px-3 py-2">{record.nama}</td>
-                            <td className="px-3 py-2">{record.jenis_tamu === 'tamu' ? (record.instansi || '-') : (record.alamat || '-')}</td>
-                            <td className="px-3 py-2">{record.hp || '-'}</td>
-                            <td className="px-3 py-2">{record.tujuan}</td>
-                            <td className="px-3 py-2">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                record.jenis_tamu === 'tamu'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-green-100 text-green-800'
-                              }`}>
-                                {record.jenis_tamu === 'tamu' ? 'Tamu' : 'Pengunjung'}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <>
-                          <tr className="bg-blue-50">
-                            <td colSpan={7} className="px-3 py-2 font-semibold text-blue-900">Data Tamu</td>
-                          </tr>
-                          {tamuRecords.length > 0 ? tamuRecords.map((record, index) => (
-                            <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                              <td className="px-3 py-2">{index + 1}</td>
-                              <td className="px-3 py-2">{record.nama}</td>
-                              <td className="px-3 py-2">{record.instansi || '-'}</td>
-                              <td className="px-3 py-2">{record.hp || '-'}</td>
-                              <td className="px-3 py-2">{record.tujuan}</td>
-                              <td className="px-3 py-2">
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Tamu</span>
-                              </td>
-                              <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
-                            </tr>
-                          )) : (
-                            <tr>
-                              <td colSpan={7} className="px-3 py-2 text-gray-500">Tidak ada data tamu</td>
-                            </tr>
-                          )}
-
-                          <tr className="bg-green-50">
-                            <td colSpan={7} className="px-3 py-2 font-semibold text-green-900">Data Pengunjung</td>
-                          </tr>
-                          {pengunjungRecords.length > 0 ? pengunjungRecords.map((record, index) => (
-                            <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                              <td className="px-3 py-2">{index + 1}</td>
-                              <td className="px-3 py-2">{record.nama}</td>
-                              <td className="px-3 py-2">{record.alamat || '-'}</td>
-                              <td className="px-3 py-2">{record.hp || '-'}</td>
-                              <td className="px-3 py-2">{record.tujuan}</td>
-                              <td className="px-3 py-2">
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Pengunjung</span>
-                              </td>
-                              <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
-                            </tr>
-                          )) : (
-                            <tr>
-                              <td colSpan={7} className="px-3 py-2 text-gray-500">Tidak ada data pengunjung</td>
-                            </tr>
-                          )}
-                        </>
-                      )
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="px-3 py-4 text-center text-gray-500">
-                          Tidak ada data
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Download Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleDownload('pdf')}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-              >
-                Download PDF
-              </button>
-
-              <button
-                onClick={() => handleDownload('xlsx')}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-              >
-                Download Excel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* No Records */}
-        {!isLoading && !error && stats?.records.length === 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <p className="text-gray-600">Tidak ada data tamu untuk bulan {monthNames[month]} {year}</p>
-          </div>
-        )}
-      </div>
-    </div>
+      {/* No Records */}
+      {!isLoading && !error && stats?.records.length === 0 && (
+        <div className="bg-card rounded-lg border shadow-sm p-8 text-center">
+          <p className="text-muted-foreground">Tidak ada data tamu untuk bulan {monthNames[month]} {year}</p>
+        </div>
+      )}
+    </AdminPageWrapper>
   );
 }
