@@ -35,6 +35,9 @@ export default function LaporanPage() {
   const [error, setError] = useState<string | null>(null);
   const [jenis, setJenis] = useState<JenisTamu | ''>('');
 
+  const tamuRecords = stats?.records.filter((record) => record.jenis_tamu === 'tamu') ?? [];
+  const pengunjungRecords = stats?.records.filter((record) => record.jenis_tamu === 'pengunjung') ?? [];
+
   // Fetch stats when month or year changes
   useEffect(() => {
     const fetchStats = async () => {
@@ -173,7 +176,13 @@ export default function LaporanPage() {
             </div>
             {/* Record Table */}
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Daftar Tamu/Pengunjung</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-2">
+                {jenis === 'tamu'
+                  ? 'Daftar Tamu'
+                  : jenis === 'pengunjung'
+                    ? 'Daftar Pengunjung'
+                    : 'Daftar Tamu dan Pengunjung (Terpisah)'}
+              </h3>
               <div className="overflow-x-auto max-h-96 overflow-y-auto border rounded-md">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-100 sticky top-0">
@@ -189,25 +198,71 @@ export default function LaporanPage() {
                   </thead>
                   <tbody>
                     {stats.records.length > 0 ? (
-                      stats.records.map((record, index) => (
-                        <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-3 py-2">{index + 1}</td>
-                          <td className="px-3 py-2">{record.nama}</td>
-                          <td className="px-3 py-2">{record.jenis_tamu === 'tamu' ? (record.instansi || '-') : (record.alamat || '-')}</td>
-                          <td className="px-3 py-2">{record.hp || '-'}</td>
-                          <td className="px-3 py-2">{record.tujuan}</td>
-                          <td className="px-3 py-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              record.jenis_tamu === 'tamu' 
-                                ? 'bg-blue-100 text-blue-800' 
-                                : 'bg-green-100 text-green-800'
-                            }`}>
-                              {record.jenis_tamu === 'tamu' ? 'Tamu' : 'Pengunjung'}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
-                        </tr>
-                      ))
+                      jenis ? (
+                        stats.records.map((record, index) => (
+                          <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <td className="px-3 py-2">{index + 1}</td>
+                            <td className="px-3 py-2">{record.nama}</td>
+                            <td className="px-3 py-2">{record.jenis_tamu === 'tamu' ? (record.instansi || '-') : (record.alamat || '-')}</td>
+                            <td className="px-3 py-2">{record.hp || '-'}</td>
+                            <td className="px-3 py-2">{record.tujuan}</td>
+                            <td className="px-3 py-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                record.jenis_tamu === 'tamu'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {record.jenis_tamu === 'tamu' ? 'Tamu' : 'Pengunjung'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <>
+                          <tr className="bg-blue-50">
+                            <td colSpan={7} className="px-3 py-2 font-semibold text-blue-900">Data Tamu</td>
+                          </tr>
+                          {tamuRecords.length > 0 ? tamuRecords.map((record, index) => (
+                            <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                              <td className="px-3 py-2">{index + 1}</td>
+                              <td className="px-3 py-2">{record.nama}</td>
+                              <td className="px-3 py-2">{record.instansi || '-'}</td>
+                              <td className="px-3 py-2">{record.hp || '-'}</td>
+                              <td className="px-3 py-2">{record.tujuan}</td>
+                              <td className="px-3 py-2">
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Tamu</span>
+                              </td>
+                              <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan={7} className="px-3 py-2 text-gray-500">Tidak ada data tamu</td>
+                            </tr>
+                          )}
+
+                          <tr className="bg-green-50">
+                            <td colSpan={7} className="px-3 py-2 font-semibold text-green-900">Data Pengunjung</td>
+                          </tr>
+                          {pengunjungRecords.length > 0 ? pengunjungRecords.map((record, index) => (
+                            <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                              <td className="px-3 py-2">{index + 1}</td>
+                              <td className="px-3 py-2">{record.nama}</td>
+                              <td className="px-3 py-2">{record.alamat || '-'}</td>
+                              <td className="px-3 py-2">{record.hp || '-'}</td>
+                              <td className="px-3 py-2">{record.tujuan}</td>
+                              <td className="px-3 py-2">
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Pengunjung</span>
+                              </td>
+                              <td className="px-3 py-2">{new Date(record.tanggal).toLocaleDateString('id-ID')}</td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan={7} className="px-3 py-2 text-gray-500">Tidak ada data pengunjung</td>
+                            </tr>
+                          )}
+                        </>
+                      )
                     ) : (
                       <tr>
                         <td colSpan={7} className="px-3 py-4 text-center text-gray-500">

@@ -127,6 +127,56 @@ describe('Server Actions', () => {
       expect(result.data.length).toBe(1)
       expect(result.data[0].tanggal).toBe('2024-03-15')
     })
+
+    it('should include records up to endDate 23:59:59 and handle datetime values', async () => {
+      const records = [
+        { jenis_tamu: 'tamu', nama: 'Awal', instansi: 'A', hp: '081', tujuan: 'T', tanggal: '2024-01-01 00:00:00' },
+        { jenis_tamu: 'tamu', nama: 'Tengah', instansi: 'B', hp: '082', tujuan: 'T', tanggal: '2024-01-15 12:30:00' },
+        { jenis_tamu: 'tamu', nama: 'Akhir', instansi: 'C', hp: '083', tujuan: 'T', tanggal: '2024-01-31 23:59:59' },
+        { jenis_tamu: 'tamu', nama: 'Luar', instansi: 'D', hp: '084', tujuan: 'T', tanggal: '2024-02-01 00:00:00' },
+      ]
+      seedTestData(testDb, records)
+
+      const result = await listTamu({
+        jenis_tamu: 'tamu',
+        page: 1,
+        perPage: 20,
+        startDate: '2024-01-01',
+        endDate: '2024-01-31',
+      }, testDb)
+
+      expect(result.data.length).toBe(3)
+      expect(result.data.some((item) => item.nama === 'Akhir')).toBe(true)
+      expect(result.data.some((item) => item.nama === 'Luar')).toBe(false)
+    })
+
+    it('should filter with single date bound', async () => {
+      const records = [
+        { jenis_tamu: 'tamu', nama: 'Old', instansi: 'A', hp: '081', tujuan: 'T', tanggal: '2024-01-01 00:00:00' },
+        { jenis_tamu: 'tamu', nama: 'New', instansi: 'B', hp: '082', tujuan: 'T', tanggal: '2024-01-20 10:00:00' },
+      ]
+      seedTestData(testDb, records)
+
+      const startOnly = await listTamu({
+        jenis_tamu: 'tamu',
+        page: 1,
+        perPage: 20,
+        startDate: '2024-01-10',
+      }, testDb)
+
+      expect(startOnly.data.length).toBe(1)
+      expect(startOnly.data[0].nama).toBe('New')
+
+      const endOnly = await listTamu({
+        jenis_tamu: 'tamu',
+        page: 1,
+        perPage: 20,
+        endDate: '2024-01-10',
+      }, testDb)
+
+      expect(endOnly.data.length).toBe(1)
+      expect(endOnly.data[0].nama).toBe('Old')
+    })
   })
 
   describe('deleteTamu', () => {

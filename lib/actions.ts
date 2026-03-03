@@ -83,8 +83,16 @@ export async function createPengunjung(formData: PengunjungFormInput, db?: Datab
   }
 
   if (params.startDate && params.endDate) {
+    const start = params.startDate <= params.endDate ? params.startDate : params.endDate
+    const end = params.startDate <= params.endDate ? params.endDate : params.startDate
     whereClause += ` AND tanggal >= ? AND tanggal <= ?`
-    queryParams.push(params.startDate + ' 00:00:00', params.endDate + ' 23:59:59')
+    queryParams.push(start + ' 00:00:00', end + ' 23:59:59')
+  } else if (params.startDate) {
+    whereClause += ` AND tanggal >= ?`
+    queryParams.push(params.startDate + ' 00:00:00')
+  } else if (params.endDate) {
+    whereClause += ` AND tanggal <= ?`
+    queryParams.push(params.endDate + ' 23:59:59')
   }
 
   // Count total records for pagination
