@@ -65,7 +65,6 @@ export default function LoginPage() {
                 placeholder="Masukkan password"
                 {...register('password')}
                 disabled={isLoading}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
               />
               {errors.password && (
                 <p className="text-sm text-red-600">{errors.password.message}</p>
@@ -77,7 +76,6 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-slate-900 text-white hover:bg-slate-800 transition-colors"
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>

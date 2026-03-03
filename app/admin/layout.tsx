@@ -95,7 +95,7 @@ export default function AdminLayout({
           </SidebarGroup>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset className="bg-slate-50">
+      <SidebarInset className="bg-background">
         <div className="p-6">
           {children}
         </div>

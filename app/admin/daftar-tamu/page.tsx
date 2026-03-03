@@ -1,7 +1,17 @@
 export const dynamic = 'force-dynamic';
+
 import { listTamu } from '@/lib/actions'
-import { TamuTable } from '@/components/admin/tamu-table'
+import { AdminPageWrapper } from '@/components/admin/admin-page-wrapper'
 import { Metadata } from 'next'
+import { Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ClientTamuTable } from './client-tamu-table'
 
 export const metadata: Metadata = {
   title: 'Daftar Tamu',
@@ -27,18 +37,57 @@ export default async function DaftarTamuPage(props: {
     endDate,
   })
 
+  // Export URL builder
+  const exportUrl = (format: 'csv' | 'xlsx' | 'pdf') => {
+    const params = new URLSearchParams()
+    params.set('jenis', 'tamu')
+    params.set('format', format)
+    if (search) params.set('search', search)
+    if (startDate) params.set('startDate', startDate)
+    if (endDate) params.set('endDate', endDate)
+    return `/api/export?${params.toString()}`
+  }
+
+  const exportActions = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          <Download className="mr-2 h-4 w-4" />
+          Export
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <a href={exportUrl('csv')} target="_blank" rel="noopener noreferrer">
+            CSV
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={exportUrl('xlsx')} target="_blank" rel="noopener noreferrer">
+            Excel
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={exportUrl('pdf')} target="_blank" rel="noopener noreferrer">
+            PDF
+          </a>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Daftar Tamu</h1>
-      </div>
-      <TamuTable
+    <AdminPageWrapper title="Daftar Tamu" actions={exportActions}>
+      <ClientTamuTable
         data={data}
         pageCount={totalPages}
         page={page}
         perPage={perPage}
         total={total}
+        search={search}
+        startDate={startDate}
+        endDate={endDate}
       />
-    </div>
+    </AdminPageWrapper>
   )
 }
