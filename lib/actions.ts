@@ -76,9 +76,10 @@ export async function createPengunjung(formData: PengunjungFormInput, db?: Datab
   let whereClause = `jenis_tamu = ?`
   const queryParams: (string | number)[] = [params.jenis_tamu]
 
-  if (params.search) {
+  const normalizedSearch = params.search?.trim()
+  if (normalizedSearch) {
     whereClause += ` AND (nama LIKE ? OR instansi LIKE ? OR alamat LIKE ?)`
-    const searchTerm = `%${params.search}%`
+    const searchTerm = `%${normalizedSearch}%`
     queryParams.push(searchTerm, searchTerm, searchTerm)
   }
 

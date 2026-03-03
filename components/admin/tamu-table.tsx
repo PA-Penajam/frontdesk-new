@@ -76,10 +76,14 @@ export function TamuTable({
   React.useEffect(() => {
     const timeoutId = setTimeout(() => {
       const params = cloneSearchParams(searchParams)
-      setOrDeleteParam(params, 'search', search)
-      params.set('page', '1') // Reset to page 1 on search
+      const normalizedSearch = search.trim()
+      const currentSearch = (params.get('search') || '').trim()
 
-      router.push(buildPathWithParams(pathname, params))
+      if (normalizedSearch !== currentSearch) {
+        setOrDeleteParam(params, 'search', normalizedSearch)
+        params.set('page', '1') // Reset to page 1 on search
+        router.replace(buildPathWithParams(pathname, params))
+      }
     }, 300)
 
     return () => clearTimeout(timeoutId)
@@ -92,14 +96,14 @@ export function TamuTable({
     setOrDeleteParam(params, 'endDate', endDate)
 
     params.set('page', '1')
-    router.push(buildPathWithParams(pathname, params))
+    router.replace(buildPathWithParams(pathname, params))
   }
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
     const params = cloneSearchParams(searchParams)
     params.set('page', newPage.toString())
-    router.push(buildPathWithParams(pathname, params))
+    router.replace(buildPathWithParams(pathname, params))
   }
 
   // Handle delete
