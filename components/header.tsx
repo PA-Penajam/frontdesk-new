@@ -11,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -49,6 +50,7 @@ export function Header() {
           >
             Admin
           </Link>
+          <ModeToggle />
         </nav>
 
         {/* Mobile Navigation */}
@@ -65,6 +67,11 @@ export function Header() {
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-4 mt-8">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Tema Tampilan</span>
+                  <ModeToggle />
+                </div>
+                <div className="h-px bg-border my-2" />
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
