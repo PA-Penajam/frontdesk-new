@@ -116,7 +116,7 @@ export function runMigration(
 // Main execution if run directly
 if (require.main === module) {
   // Resolve paths
-  const jsonPath = path.resolve(process.cwd(), '../frontdesk-old/frontdesk-merged.json');
+  const jsonPath = path.resolve(process.cwd(), 'scripts', 'frontdesk-merged.json');
   const dbPath = path.resolve(process.cwd(), 'data', 'frontdesk.db');
 
   // Ensure data directory exists
