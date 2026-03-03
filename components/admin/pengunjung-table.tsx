@@ -112,7 +112,7 @@ export function PengunjungTable({
   }
 
   // Handle export
-  const handleExport = (format: 'csv' | 'xlsx') => {
+  const handleExport = (format: 'csv' | 'xlsx' | 'pdf') => {
     const params = new URLSearchParams()
     params.set('jenis', 'pengunjung')
     params.set('format', format)
@@ -229,6 +229,9 @@ export function PengunjungTable({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExport('xlsx')}>
                 Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                PDF
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

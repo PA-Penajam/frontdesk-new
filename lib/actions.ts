@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getDb } from './db'
 import { tamuFormSchema, pengunjungFormSchema } from './schemas'
-import type { Tamu, TamuListParams, PaginatedResult, ActionResult, MonthlyStats } from './types'
+import type { Tamu, TamuListParams, PaginatedResult, ActionResult, MonthlyStats, JenisTamu } from './types'
 import type { TamuFormInput, PengunjungFormInput } from './schemas'
 import type { Database } from 'better-sqlite3'
 
@@ -83,8 +83,8 @@ export async function createPengunjung(formData: PengunjungFormInput, db?: Datab
   }
 
   if (params.startDate && params.endDate) {
-    whereClause += ` AND tanggal BETWEEN ? AND ?`
-    queryParams.push(params.startDate, params.endDate)
+    whereClause += ` AND tanggal >= ? AND tanggal <= ?`
+    queryParams.push(params.startDate + ' 00:00:00', params.endDate + ' 23:59:59')
   }
 
   // Count total records for pagination
@@ -141,15 +141,23 @@ export async function deleteTamu(id: number, db?: Database): Promise<ActionResul
 }
 
 // 5. Get Monthly Stats
-export async function getMonthlyStats(year: number, month: number, db?: Database): Promise<MonthlyStats> {
+export async function getMonthlyStats(year: number, month: number, jenis?: JenisTamu, db?: Database): Promise<MonthlyStats> {
   const database = getDatabase(db)
   
   const monthStr = String(month).padStart(2, '0')
   const datePattern = `${year}-${monthStr}-%`
 
+  let query = `SELECT * FROM tamu WHERE tanggal LIKE ?`
+  const params: (string)[] = [datePattern]
+
+  if (jenis) {
+    query += ` AND jenis_tamu = ?`
+    params.push(jenis)
+  }
+
   const records = database
-    .prepare(`SELECT * FROM tamu WHERE tanggal LIKE ?`)
-    .all(datePattern) as Tamu[]
+    .prepare(query)
+    .all(...params) as Tamu[]
 
   // Calculate stats
   const totalTamu = records.filter(r => r.jenis_tamu === 'tamu').length

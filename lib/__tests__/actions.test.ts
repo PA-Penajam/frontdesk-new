@@ -163,7 +163,7 @@ describe('Server Actions', () => {
       ]
       seedTestData(testDb, records)
 
-      const stats = await getMonthlyStats(2024, 3, testDb)
+      const stats = await getMonthlyStats(2024, 3, undefined, testDb)
 
       expect(stats.totalTamu).toBe(2)
       expect(stats.totalPengunjung).toBe(3)

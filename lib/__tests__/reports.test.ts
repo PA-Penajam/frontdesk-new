@@ -65,7 +65,7 @@ describe('reports', () => {
       
       // The first cell should contain 'Laporan Bulan Januari 2025'
       const cellA1 = XLSX.utils.format_cell(ws1['A1']);
-      expect(cellA1).toEqual('Laporan Bulan Januari 2025');
+      expect(cellA1).toEqual('Laporan Tamu & Pengunjung Bulan Januari 2025');
     });
   });
 });

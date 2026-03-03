@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listTamu } from '@/lib/actions';
-import { generateCSV, generateExcel } from '@/lib/export';
+import { generateCSV, generateExcel, generatePDF } from '@/lib/export';
 
 export async function GET(request: NextRequest) {
   // Check authentication via admin-session cookie
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   // Get query parameters
   const searchParams = request.nextUrl.searchParams;
   const jenisTamu = searchParams.get('jenis') as 'tamu' | 'pengunjung';
-  const format = searchParams.get('format') as 'csv' | 'xlsx';
+  const format = searchParams.get('format') as 'csv' | 'xlsx' | 'pdf';
   const search = searchParams.get('search');
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid jenis parameter' }, { status: 400 });
   }
 
-  if (!format || !['csv', 'xlsx'].includes(format)) {
+  if (!format || !['csv', 'xlsx', 'pdf'].includes(format)) {
     return NextResponse.json({ error: 'Invalid format parameter' }, { status: 400 });
   }
 
@@ -49,12 +49,21 @@ export async function GET(request: NextRequest) {
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
-  } else {
+  } else if (format === 'xlsx') {
     const excelBuffer = generateExcel(result.data, jenisTamu);
     return new NextResponse(new Uint8Array(excelBuffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    });
+  } else {
+    const pdfBuffer = generatePDF(result.data, jenisTamu);
+    const pdfFilename = `daftar-${jenisTamu}-${today}.pdf`;
+    return new NextResponse(Buffer.from(pdfBuffer), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${pdfFilename}"`,
       },
     });
   }

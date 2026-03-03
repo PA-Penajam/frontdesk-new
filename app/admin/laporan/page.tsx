@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getMonthlyStats } from '@/lib/actions';
 import type { MonthlyStats } from '@/lib/types';
+import type { JenisTamu } from '@/lib/types';
 
 // Indonesian month names
 const monthNames = [
@@ -32,6 +33,7 @@ export default function LaporanPage() {
   const [stats, setStats] = useState<MonthlyStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [jenis, setJenis] = useState<JenisTamu | ''>('');
 
   // Fetch stats when month or year changes
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function LaporanPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getMonthlyStats(year, month);
+        const data = await getMonthlyStats(year, month, jenis || undefined);
         setStats(data);
       } catch (err) {
         setError('Gagal memuat data laporan');
@@ -50,11 +52,14 @@ export default function LaporanPage() {
     };
 
     fetchStats();
-  }, [month, year]);
+  }, [month, year, jenis]);
 
   // Handle download
   const handleDownload = (format: 'pdf' | 'xlsx') => {
-    const url = `/api/report?month=${month}&year=${year}&format=${format}`;
+    let url = `/api/report?month=${month}&year=${year}&format=${format}`;
+    if (jenis) {
+      url += `&jenis=${jenis}`;
+    }
     window.open(url, '_blank');
   };
 
@@ -96,6 +101,21 @@ export default function LaporanPage() {
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Jenis
+              </label>
+              <select
+                value={jenis}
+                onChange={(e) => setJenis(e.target.value as JenisTamu | '')}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Semua</option>
+                <option value="tamu">Tamu</option>
+                <option value="pengunjung">Pengunjung</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -118,7 +138,7 @@ export default function LaporanPage() {
         {!isLoading && stats && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Preview Laporan Bulan {monthNames[month]} {year}
+              Preview Laporan {jenis === 'tamu' ? 'Tamu' : jenis === 'pengunjung' ? 'Pengunjung' : 'Buku Tamu'} Bulan {monthNames[month]} {year}
             </h2>
 
             {/* Summary */}

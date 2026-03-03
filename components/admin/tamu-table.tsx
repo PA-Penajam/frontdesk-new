@@ -115,7 +115,7 @@ export function TamuTable({
   }, [startTransition])
 
   // Handle export
-  const handleExport = (format: 'csv' | 'xlsx') => {
+  const handleExport = (format: 'csv' | 'xlsx' | 'pdf') => {
     const params = new URLSearchParams()
     params.set('jenis', 'tamu')
     params.set('format', format)
@@ -254,6 +254,9 @@ export function TamuTable({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExport('xlsx')}>
               Excel
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('pdf')}>
+              PDF
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

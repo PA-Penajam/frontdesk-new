@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMonthlyStats } from '@/lib/actions';
 import { generateMonthlyPDF, generateMonthlyExcel } from '@/lib/reports';
+import type { JenisTamu } from '@/lib/types';
 
 // Indonesian month names
 const monthNames = [
@@ -32,6 +33,10 @@ export async function GET(request: NextRequest) {
     const month = parseInt(searchParams.get('month') || '');
     const year = parseInt(searchParams.get('year') || '');
     const format = searchParams.get('format') || 'pdf';
+    const jenisParam = searchParams.get('jenis') || '';
+    const jenis: JenisTamu | undefined = ['tamu', 'pengunjung'].includes(jenisParam)
+      ? (jenisParam as JenisTamu)
+      : undefined;
 
     // Validate parameters
     if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
@@ -39,13 +44,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Get monthly stats
-    const stats = await getMonthlyStats(year, month);
+    const stats = await getMonthlyStats(year, month, jenis);
 
     // Generate report
+    const jenisLabel = jenis === 'tamu' ? 'tamu' : jenis === 'pengunjung' ? 'pengunjung' : 'buku-tamu';
+
     if (format === 'pdf') {
-      const pdf = await generateMonthlyPDF(stats, month, year);
+      const pdf = await generateMonthlyPDF(stats, month, year, jenis);
       const monthName = monthNames[month];
-      const filename = `laporan-buku-tamu-${monthName.toLowerCase()}-${year}.pdf`;
+      const filename = `laporan-${jenisLabel}-${monthName.toLowerCase()}-${year}.pdf`;
       
       return new NextResponse(Buffer.from(pdf), {
         headers: {
@@ -54,9 +61,9 @@ export async function GET(request: NextRequest) {
         }
       });
     } else if (format === 'xlsx') {
-      const excel = await generateMonthlyExcel(stats, month, year);
+      const excel = await generateMonthlyExcel(stats, month, year, jenis);
       const monthName = monthNames[month];
-      const filename = `laporan-buku-tamu-${monthName.toLowerCase()}-${year}.xlsx`;
+      const filename = `laporan-${jenisLabel}-${monthName.toLowerCase()}-${year}.xlsx`;
       
       return new NextResponse(Buffer.from(excel), {
         headers: {
