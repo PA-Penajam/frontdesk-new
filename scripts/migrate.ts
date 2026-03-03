@@ -14,6 +14,9 @@ interface RawRecord {
   tujuan: string;
 }
 
+// Cleaned record type
+type CleanedRecord = Omit<RawRecord, 'id'> & { id: number; [key: string]: unknown };
+
 // Migration result type
 interface MigrationResult {
   totalInserted: number;
@@ -22,9 +25,9 @@ interface MigrationResult {
 }
 
 // Clean a single record
-function cleanRecord(record: RawRecord) {
+function cleanRecord(record: RawRecord): CleanedRecord {
   // Trim all string fields
-  const cleaned: any = { ...record };
+  const cleaned: CleanedRecord = { ...record } as CleanedRecord;
   for (const key in cleaned) {
     const value = cleaned[key];
     if (typeof value === 'string') {

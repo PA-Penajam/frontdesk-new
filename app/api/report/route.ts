@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     } else {
       return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error generating report:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

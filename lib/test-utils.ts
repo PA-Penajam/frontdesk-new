@@ -16,7 +16,7 @@ export function getTestDb() {
     const schemaPath = path.resolve(process.cwd(), 'scripts', 'schema.sql');
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
     db.exec(schemaSql);
-  } catch (error) {
+  } catch {
     // Fallback to inline schema if file is missing
     db.exec(`
       CREATE TABLE IF NOT EXISTS tamu (

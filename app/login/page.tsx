@@ -38,7 +38,7 @@ export default function LoginPage() {
       } else {
         setError(result.message)
       }
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan, silakan coba lagi')
     } finally {
       setIsLoading(false)

@@ -18,6 +18,24 @@ import {
 import { LogOut, Users, FileText, ClipboardList } from "lucide-react"
 import { logoutAction } from "@/lib/actions-auth"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+
+function NavLink({ href, children, icon: Icon }: { href: string; children: React.ReactNode; icon: React.ComponentType<{ className?: string }> }) {
+  const pathname = usePathname()
+  const isActive = pathname === href || (href !== "/admin" && pathname.startsWith(href))
+
+  return (
+    <SidebarMenuButton
+      asChild
+      className={isActive ? "bg-slate-800 text-white" : ""}
+    >
+      <Link href={href}>
+        <Icon className="size-4" />
+        <span>{children}</span>
+      </Link>
+    </SidebarMenuButton>
+  )
+}
 
 export default function AdminLayout({
   children,
@@ -38,28 +56,19 @@ export default function AdminLayout({
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/admin/daftar-tamu">
-                      <Users className="size-4" />
-                      <span>Daftar Tamu</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <NavLink href="/admin/daftar-tamu" icon={Users}>
+                    Daftar Tamu
+                  </NavLink>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/admin/daftar-pengunjung">
-                      <ClipboardList className="size-4" />
-                      <span>Daftar Pengunjung</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <NavLink href="/admin/daftar-pengunjung" icon={ClipboardList}>
+                    Daftar Pengunjung
+                  </NavLink>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/admin/laporan">
-                      <FileText className="size-4" />
-                      <span>Laporan</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <NavLink href="/admin/laporan" icon={FileText}>
+                    Laporan
+                  </NavLink>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
@@ -73,7 +82,6 @@ export default function AdminLayout({
                 <SidebarMenuItem>
                   <SidebarMenuButton 
                     onClick={() => {
-                      // @ts-ignore - Server action
                       logoutAction()
                     }}
                     className="text-red-400 hover:text-red-300 hover:bg-red-900/20"

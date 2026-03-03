@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getTestDb } from '../test-utils';
 import { runMigration } from '../../scripts/migrate';
+import type { Database } from 'better-sqlite3';
 
 describe('Migration from JSON to SQLite', () => {
-  let db: any;
+  let db: Database;
 
   beforeEach(() => {
     db = getTestDb();

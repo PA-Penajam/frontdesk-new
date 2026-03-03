@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -37,7 +36,6 @@ export default function BukuTamuPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    setError,
   } = form
 
   const onSubmit = async (data: z.infer<typeof tamuFormSchema>) => {

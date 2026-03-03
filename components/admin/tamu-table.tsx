@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 import { deleteTamu } from '@/lib/actions'
+import { buildPathWithParams, cloneSearchParams, setOrDeleteParam } from '@/lib/query-params'
 import { Tamu } from '@/lib/types'
 
 interface TamuTableProps {
@@ -56,6 +57,8 @@ export function TamuTable({
   perPage,
   total,
 }: TamuTableProps) {
+  "use no memo"
+
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -72,15 +75,11 @@ export function TamuTable({
   // Debounce search
   React.useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const params = new URLSearchParams(searchParams)
-      if (search) {
-        params.set('search', search)
-      } else {
-        params.delete('search')
-      }
+      const params = cloneSearchParams(searchParams)
+      setOrDeleteParam(params, 'search', search)
       params.set('page', '1') // Reset to page 1 on search
-      
-      router.push(`${pathname}?${params.toString()}`)
+
+      router.push(buildPathWithParams(pathname, params))
     }, 300)
 
     return () => clearTimeout(timeoutId)
@@ -88,26 +87,23 @@ export function TamuTable({
 
   // Handle date filter
   const handleDateFilter = () => {
-    const params = new URLSearchParams(searchParams)
-    if (startDate) params.set('startDate', startDate)
-    else params.delete('startDate')
-    
-    if (endDate) params.set('endDate', endDate)
-    else params.delete('endDate')
-    
+    const params = cloneSearchParams(searchParams)
+    setOrDeleteParam(params, 'startDate', startDate)
+    setOrDeleteParam(params, 'endDate', endDate)
+
     params.set('page', '1')
-    router.push(`${pathname}?${params.toString()}`)
+    router.push(buildPathWithParams(pathname, params))
   }
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams)
+    const params = cloneSearchParams(searchParams)
     params.set('page', newPage.toString())
-    router.push(`${pathname}?${params.toString()}`)
+    router.push(buildPathWithParams(pathname, params))
   }
 
   // Handle delete
-  const handleDelete = async (id: number) => {
+  const handleDelete = React.useCallback(async (id: number) => {
     startTransition(async () => {
       const result = await deleteTamu(id)
       if (result.success) {
@@ -116,91 +112,95 @@ export function TamuTable({
         toast.error(result.message)
       }
     })
-  }
+  }, [startTransition])
 
   // Handle export
   const handleExport = (format: 'csv' | 'xlsx') => {
     const params = new URLSearchParams()
     params.set('jenis', 'tamu')
     params.set('format', format)
-    if (search) params.set('search', search)
-    if (startDate) params.set('startDate', startDate)
-    if (endDate) params.set('endDate', endDate)
+    setOrDeleteParam(params, 'search', search)
+    setOrDeleteParam(params, 'startDate', startDate)
+    setOrDeleteParam(params, 'endDate', endDate)
     window.open(`/api/export?${params.toString()}`, '_blank')
   }
 
-  const columns: ColumnDef<Tamu>[] = [
-    {
-      id: 'no',
-      header: 'No',
-      cell: ({ row }) => (page - 1) * perPage + row.index + 1,
-    },
-    {
-      accessorKey: 'nama',
-      header: 'Nama',
-    },
-    {
-      accessorKey: 'instansi',
-      header: 'Instansi',
-      cell: ({ row }) => row.original.instansi || '-',
-    },
-    {
-      accessorKey: 'hp',
-      header: 'HP',
-      cell: ({ row }) => row.original.hp || '-',
-    },
-    {
-      accessorKey: 'tujuan',
-      header: 'Tujuan',
-    },
-    {
-      accessorKey: 'tanggal',
-      header: 'Tanggal',
-      cell: ({ row }) => {
-        return new Intl.DateTimeFormat('id-ID', {
-          dateStyle: 'long',
-          timeStyle: 'short',
-        }).format(new Date(row.original.tanggal))
+  const columns: ColumnDef<Tamu>[] = React.useMemo(
+    () => [
+      {
+        id: 'no',
+        header: 'No',
+        cell: ({ row }) => (page - 1) * perPage + row.index + 1,
       },
-    },
-    {
-      id: 'actions',
-      header: 'Aksi',
-      cell: ({ row }) => {
-        return (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="destructive" size="icon" className="h-8 w-8">
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Hapus</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Apakah anda yakin?</DialogTitle>
-                <DialogDescription>
-                  Tindakan ini tidak dapat dibatalkan. Data tamu ini akan dihapus permanen dari database.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Batal</Button>
-                </DialogClose>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDelete(row.original.id)}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Hapus
+      {
+        accessorKey: 'nama',
+        header: 'Nama',
+      },
+      {
+        accessorKey: 'instansi',
+        header: 'Instansi',
+        cell: ({ row }) => row.original.instansi || '-',
+      },
+      {
+        accessorKey: 'hp',
+        header: 'HP',
+        cell: ({ row }) => row.original.hp || '-',
+      },
+      {
+        accessorKey: 'tujuan',
+        header: 'Tujuan',
+      },
+      {
+        accessorKey: 'tanggal',
+        header: 'Tanggal',
+        cell: ({ row }) => {
+          return new Intl.DateTimeFormat('id-ID', {
+            dateStyle: 'long',
+            timeStyle: 'short',
+          }).format(new Date(row.original.tanggal))
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Aksi',
+        cell: ({ row }) => {
+          return (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive" size="icon" className="h-8 w-8">
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Hapus</span>
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Apakah anda yakin?</DialogTitle>
+                  <DialogDescription>
+                    Tindakan ini tidak dapat dibatalkan. Data tamu ini akan dihapus permanen dari database.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline">Batal</Button>
+                  </DialogClose>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDelete(row.original.id)}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Hapus
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )
+        },
       },
-    },
-  ]
+    ],
+    [page, perPage, handleDelete]
+  )
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable is a known incompatible API
   const table = useReactTable({
     data,
     columns,

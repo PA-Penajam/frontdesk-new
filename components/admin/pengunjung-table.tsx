@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { deleteTamu } from '@/lib/actions'
+import { buildPathWithParams, cloneSearchParams, setOrDeleteParam } from '@/lib/query-params'
 import { toast } from 'sonner'
 import { Tamu } from '@/lib/types'
 import { Trash2, ChevronLeft, ChevronRight, Download } from 'lucide-react'
@@ -64,17 +65,13 @@ export function PengunjungTable({
   // Debounce search
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
+      const params = cloneSearchParams(searchParams)
       const currentSearch = params.get('search') || ''
-      
+
       if (search !== currentSearch) {
-        if (search) {
-          params.set('search', search)
-        } else {
-          params.delete('search')
-        }
+        setOrDeleteParam(params, 'search', search)
         params.set('page', '1') // Reset to page 1 on search
-        router.replace(`${pathname}?${params.toString()}`)
+        router.replace(buildPathWithParams(pathname, params))
       }
     }, 300)
 
@@ -82,21 +79,18 @@ export function PengunjungTable({
   }, [search, pathname, router, searchParams])
 
   const handleDateFilter = () => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (startDate) params.set('startDate', startDate)
-    else params.delete('startDate')
-    
-    if (endDate) params.set('endDate', endDate)
-    else params.delete('endDate')
+    const params = cloneSearchParams(searchParams)
+    setOrDeleteParam(params, 'startDate', startDate)
+    setOrDeleteParam(params, 'endDate', endDate)
 
     params.set('page', '1')
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(buildPathWithParams(pathname, params))
   }
 
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = cloneSearchParams(searchParams)
     params.set('page', newPage.toString())
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(buildPathWithParams(pathname, params))
   }
 
   const handleDelete = async () => {
@@ -110,7 +104,7 @@ export function PengunjungTable({
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch {
       toast.error('Terjadi kesalahan saat menghapus data')
     } finally {
       setIsDeleting(false)
@@ -122,66 +116,69 @@ export function PengunjungTable({
     const params = new URLSearchParams()
     params.set('jenis', 'pengunjung')
     params.set('format', format)
-    if (search) params.set('search', search)
-    if (startDate) params.set('startDate', startDate)
-    if (endDate) params.set('endDate', endDate)
+    setOrDeleteParam(params, 'search', search)
+    setOrDeleteParam(params, 'startDate', startDate)
+    setOrDeleteParam(params, 'endDate', endDate)
     window.open(`/api/export?${params.toString()}`, '_blank')
   }
 
-  const columns: ColumnDef<Tamu>[] = [
-    {
-      header: 'No',
-      cell: ({ row }) => {
-        return (currentPage - 1) * 20 + row.index + 1
+  const columns: ColumnDef<Tamu>[] = React.useMemo(
+    () => [
+      {
+        header: 'No',
+        cell: ({ row }) => {
+          return (currentPage - 1) * 20 + row.index + 1
+        },
       },
-    },
-    {
-      accessorKey: 'nama',
-      header: 'Nama',
-    },
-    {
-      accessorKey: 'alamat',
-      header: 'Alamat',
-      cell: ({ row }) => row.original.alamat || '-',
-    },
-    {
-      accessorKey: 'hp',
-      header: 'HP',
-      cell: ({ row }) => row.original.hp || '-',
-    },
-    {
-      accessorKey: 'tujuan',
-      header: 'Tujuan',
-    },
-    {
-      accessorKey: 'tanggal',
-      header: 'Tanggal',
-      cell: ({ row }) => {
-        const date = new Date(row.original.tanggal)
-        return new Intl.DateTimeFormat('id-ID', {
-          dateStyle: 'long',
-          timeStyle: 'short',
-        }).format(date)
+      {
+        accessorKey: 'nama',
+        header: 'Nama',
       },
-    },
-    {
-      id: 'actions',
-      header: 'Aksi',
-      cell: ({ row }) => {
-        return (
-          <Button
-            variant="destructive"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setDeleteId(row.original.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Hapus</span>
-          </Button>
-        )
+      {
+        accessorKey: 'alamat',
+        header: 'Alamat',
+        cell: ({ row }) => row.original.alamat || '-',
       },
-    },
-  ]
+      {
+        accessorKey: 'hp',
+        header: 'HP',
+        cell: ({ row }) => row.original.hp || '-',
+      },
+      {
+        accessorKey: 'tujuan',
+        header: 'Tujuan',
+      },
+      {
+        accessorKey: 'tanggal',
+        header: 'Tanggal',
+        cell: ({ row }) => {
+          const date = new Date(row.original.tanggal)
+          return new Intl.DateTimeFormat('id-ID', {
+            dateStyle: 'long',
+            timeStyle: 'short',
+          }).format(date)
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Aksi',
+        cell: ({ row }) => {
+          return (
+            <Button
+              variant="destructive"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setDeleteId(row.original.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Hapus</span>
+            </Button>
+          )
+        },
+      },
+    ],
+    [currentPage]
+  )
 
   const table = useReactTable({
     data,

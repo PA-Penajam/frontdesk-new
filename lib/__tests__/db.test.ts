@@ -16,7 +16,7 @@ describe('Database Utility', () => {
 
   it('schema creates tamu table with correct columns', () => {
     const tableInfo = db.prepare("PRAGMA table_info(tamu)").all();
-    const columns = tableInfo.map((col: any) => col.name);
+    const columns = tableInfo.map((col: { name: string }) => col.name);
     
     expect(columns).toEqual(expect.arrayContaining([
       'id', 'jenis_tamu', 'nama', 'alamat', 'instansi', 'hp', 'tujuan', 'tanggal', 'old_id'

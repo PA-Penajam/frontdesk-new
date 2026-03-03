@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getDb } from './db'
 import { tamuFormSchema, pengunjungFormSchema } from './schemas'
 import type { Tamu, TamuListParams, PaginatedResult, ActionResult, MonthlyStats } from './types'
+import type { TamuFormInput, PengunjungFormInput } from './schemas'
 import type { Database } from 'better-sqlite3'
 
 // Helper function to get database (accepts optional db for testing)
@@ -12,10 +13,9 @@ function getDatabase(db?: Database) {
 }
 
 // 1. Create Tamu
-export async function createTamu(formData: any, db?: Database): Promise<ActionResult> {
+export async function createTamu(formData: TamuFormInput, db?: Database): Promise<ActionResult> {
   try {
     const validatedData = tamuFormSchema.parse(formData)
-    
     const database = getDatabase(db)
     const result = database
       .prepare(
@@ -31,19 +31,19 @@ export async function createTamu(formData: any, db?: Database): Promise<ActionRe
       message: 'Tamu berhasil ditambahkan',
       id: result.lastInsertRowid as number
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal menambahkan tamu'
     return {
       success: false,
-      message: error.message || 'Gagal menambahkan tamu'
+      message
     }
   }
 }
 
 // 2. Create Pengunjung
-export async function createPengunjung(formData: any, db?: Database): Promise<ActionResult> {
+export async function createPengunjung(formData: PengunjungFormInput, db?: Database): Promise<ActionResult> {
   try {
     const validatedData = pengunjungFormSchema.parse(formData)
-    
     const database = getDatabase(db)
     const result = database
       .prepare(
@@ -59,10 +59,11 @@ export async function createPengunjung(formData: any, db?: Database): Promise<Ac
       message: 'Pengunjung berhasil ditambahkan',
       id: result.lastInsertRowid as number
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal menambahkan pengunjung'
     return {
       success: false,
-      message: error.message || 'Gagal menambahkan pengunjung'
+      message
     }
   }
 }
@@ -73,7 +74,7 @@ export async function createPengunjung(formData: any, db?: Database): Promise<Ac
   
   // Build query
   let whereClause = `jenis_tamu = ?`
-  const queryParams: any[] = [params.jenis_tamu]
+  const queryParams: (string | number)[] = [params.jenis_tamu]
 
   if (params.search) {
     whereClause += ` AND (nama LIKE ? OR instansi LIKE ? OR alamat LIKE ?)`
@@ -130,10 +131,11 @@ export async function deleteTamu(id: number, db?: Database): Promise<ActionResul
       success: true,
       message: 'Tamu berhasil dihapus'
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal menghapus tamu'
     return {
       success: false,
-      message: error.message || 'Gagal menghapus tamu'
+      message
     }
   }
 }

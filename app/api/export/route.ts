@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     });
   } else {
     const excelBuffer = generateExcel(result.data, jenisTamu);
-    return new NextResponse(excelBuffer as any, {
+    return new NextResponse(new Uint8Array(excelBuffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${filename}"`,
