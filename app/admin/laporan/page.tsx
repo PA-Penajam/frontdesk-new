@@ -26,6 +26,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, UserCheck, FileText } from 'lucide-react';
+import { NumberTicker } from '@/components/ui/number-ticker';
+import { BlurFade } from '@/components/ui/blur-fade';
 
 // Indonesian month names
 const monthNames = [
@@ -56,6 +58,18 @@ export default function LaporanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [jenis, setJenis] = useState<JenisTamu | ''>('');
+
+  // Check for reduced motion preference
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
 
   const tamuRecords = stats?.records.filter((record) => record.jenis_tamu === 'tamu') ?? [];
   const pengunjungRecords = stats?.records.filter((record) => record.jenis_tamu === 'pengunjung') ?? [];
@@ -187,149 +201,157 @@ export default function LaporanPage() {
             Preview Laporan {jenis === 'tamu' ? 'Tamu' : jenis === 'pengunjung' ? 'Pengunjung' : 'Buku Tamu'} Bulan {monthNames[month]} {year}
           </h2>
 
-          {/* Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <StatCard
-              title="Total Tamu"
-              value={stats.totalTamu}
-              icon={Users}
-              className="bg-blue-50 dark:bg-blue-950/20"
-            />
-            <StatCard
-              title="Total Pengunjung"
-              value={stats.totalPengunjung}
-              icon={UserCheck}
-              className="bg-green-50 dark:bg-green-950/20"
-            />
-            <StatCard
-              title="Total Seluruh"
-              value={stats.records.length}
-              icon={FileText}
-              className="bg-yellow-50 dark:bg-yellow-950/20"
-            />
-          </div>
-
-          {/* Tujuan Breakdown */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium mb-2">Tujuan Pengunjung</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {Object.entries(stats.tujuanSummary).map(([tujuan, count]) => (
-                <div key={tujuan} className="flex justify-between items-center bg-muted/50 p-2 rounded-md">
-                  <span className="text-sm text-muted-foreground">{tujuan}</span>
-                  <span className="text-sm font-semibold">{count}</span>
-                </div>
-              ))}
+          <BlurFade delay={prefersReducedMotion ? 0 : 0} inView>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <StatCard
+                title="Total Tamu"
+                value={
+                  prefersReducedMotion ? (
+                    stats.totalTamu
+                  ) : (
+                    <NumberTicker value={stats.totalTamu} />
+                  )
+                }
+                icon={Users}
+                className="bg-blue-50 dark:bg-blue-950/20"
+              />
+              <StatCard
+                title="Total Pengunjung"
+                value={
+                  prefersReducedMotion ? (
+                    stats.totalPengunjung
+                  ) : (
+                    <NumberTicker value={stats.totalPengunjung} />
+                  )
+                }
+                icon={UserCheck}
+                className="bg-green-50 dark:bg-green-950/20"
+              />
+              <StatCard
+                title="Total Seluruh"
+                value={
+                  prefersReducedMotion ? (
+                    stats.records.length
+                  ) : (
+                    <NumberTicker value={stats.records.length} />
+                  )
+                }
+                icon={FileText}
+                className="bg-yellow-50 dark:bg-yellow-950/20"
+              />
             </div>
-          </div>
+          </BlurFade>
 
           {/* Record Table */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium mb-2">
-              {jenis === 'tamu'
-                ? 'Daftar Tamu'
-                : jenis === 'pengunjung'
-                  ? 'Daftar Pengunjung'
-                  : 'Daftar Tamu dan Pengunjung (Terpisah)'}
-            </h3>
-            <div className="overflow-x-auto max-h-96 overflow-y-auto border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">No</TableHead>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Instansi/Alamat</TableHead>
-                    <TableHead>HP</TableHead>
-                    <TableHead>Tujuan</TableHead>
-                    <TableHead>Jenis Tamu</TableHead>
-                    <TableHead>Tanggal</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {stats.records.length > 0 ? (
-                    jenis ? (
-                      stats.records.map((record, index) => (
-                        <TableRow key={record.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell className="font-medium">{record.nama}</TableCell>
-                          <TableCell>{record.jenis_tamu === 'tamu' ? (record.instansi || '-') : (record.alamat || '-')}</TableCell>
-                          <TableCell>{record.hp || '-'}</TableCell>
-                          <TableCell>{record.tujuan}</TableCell>
-                          <TableCell>
-                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                              record.jenis_tamu === 'tamu'
-                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            }`}>
-                              {record.jenis_tamu === 'tamu' ? 'Tamu' : 'Pengunjung'}
-                            </span>
-                          </TableCell>
-                          <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <>
-                        <TableRow className="bg-blue-50 dark:bg-blue-950/20">
-                          <TableCell colSpan={7} className="font-semibold text-blue-900 dark:text-blue-100">Data Tamu</TableCell>
-                        </TableRow>
-                        {tamuRecords.length > 0 ? tamuRecords.map((record, index) => (
-                          <TableRow key={record.id}>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell className="font-medium">{record.nama}</TableCell>
-                            <TableCell>{record.instansi || '-'}</TableCell>
-                            <TableCell>{record.hp || '-'}</TableCell>
-                            <TableCell>{record.tujuan}</TableCell>
-                            <TableCell>
-                              <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                Tamu
-                              </span>
-                            </TableCell>
-                            <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
-                          </TableRow>
-                        )) : (
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
-                              Tidak ada data tamu
-                            </TableCell>
-                          </TableRow>
-                        )}
-
-                        <TableRow className="bg-green-50 dark:bg-green-950/20">
-                          <TableCell colSpan={7} className="font-semibold text-green-900 dark:text-green-100">Data Pengunjung</TableCell>
-                        </TableRow>
-                        {pengunjungRecords.length > 0 ? pengunjungRecords.map((record, index) => (
-                          <TableRow key={record.id}>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell className="font-medium">{record.nama}</TableCell>
-                            <TableCell>{record.alamat || '-'}</TableCell>
-                            <TableCell>{record.hp || '-'}</TableCell>
-                            <TableCell>{record.tujuan}</TableCell>
-                            <TableCell>
-                              <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                Pengunjung
-                              </span>
-                            </TableCell>
-                            <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
-                          </TableRow>
-                        )) : (
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
-                              Tidak ada data pengunjung
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </>
-                    )
-                  ) : (
+          <BlurFade delay={prefersReducedMotion ? 0 : 0.1} inView>
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-2">
+                {jenis === 'tamu'
+                  ? 'Daftar Tamu'
+                  : jenis === 'pengunjung'
+                    ? 'Daftar Pengunjung'
+                    : 'Daftar Tamu dan Pengunjung (Terpisah)'}
+              </h3>
+              <div className="overflow-x-auto max-h-96 overflow-y-auto border rounded-md">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
-                        Tidak ada data
-                      </TableCell>
+                      <TableHead className="w-[50px]">No</TableHead>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>Instansi/Alamat</TableHead>
+                      <TableHead>HP</TableHead>
+                      <TableHead>Tujuan</TableHead>
+                      <TableHead>Jenis Tamu</TableHead>
+                      <TableHead>Tanggal</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {stats.records.length > 0 ? (
+                      jenis ? (
+                        stats.records.map((record, index) => (
+                          <TableRow key={record.id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell className="font-medium">{record.nama}</TableCell>
+                            <TableCell>{record.jenis_tamu === 'tamu' ? (record.instansi || '-') : (record.alamat || '-')}</TableCell>
+                            <TableCell>{record.hp || '-'}</TableCell>
+                            <TableCell>{record.tujuan}</TableCell>
+                            <TableCell>
+                              <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                                record.jenis_tamu === 'tamu'
+                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              }`}>
+                                {record.jenis_tamu === 'tamu' ? 'Tamu' : 'Pengunjung'}
+                              </span>
+                            </TableCell>
+                            <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <>
+                          <TableRow className="bg-blue-50 dark:bg-blue-950/20">
+                            <TableCell colSpan={7} className="font-semibold text-blue-900 dark:text-blue-100">Data Tamu</TableCell>
+                          </TableRow>
+                          {tamuRecords.length > 0 ? tamuRecords.map((record, index) => (
+                            <TableRow key={record.id}>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell className="font-medium">{record.nama}</TableCell>
+                              <TableCell>{record.instansi || '-'}</TableCell>
+                              <TableCell>{record.hp || '-'}</TableCell>
+                              <TableCell>{record.tujuan}</TableCell>
+                              <TableCell>
+                                <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  Tamu
+                                </span>
+                              </TableCell>
+                              <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
+                            </TableRow>
+                          )) : (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
+                                Tidak ada data tamu
+                              </TableCell>
+                            </TableRow>
+                          )}
+
+                          <TableRow className="bg-green-50 dark:bg-green-950/20">
+                            <TableCell colSpan={7} className="font-semibold text-green-900 dark:text-green-100">Data Pengunjung</TableCell>
+                          </TableRow>
+                          {pengunjungRecords.length > 0 ? pengunjungRecords.map((record, index) => (
+                            <TableRow key={record.id}>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell className="font-medium">{record.nama}</TableCell>
+                              <TableCell>{record.alamat || '-'}</TableCell>
+                              <TableCell>{record.hp || '-'}</TableCell>
+                              <TableCell>{record.tujuan}</TableCell>
+                              <TableCell>
+                                <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                  Pengunjung
+                                </span>
+                              </TableCell>
+                              <TableCell>{new Date(record.tanggal).toLocaleDateString('id-ID')}</TableCell>
+                            </TableRow>
+                          )) : (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
+                                Tidak ada data pengunjung
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </>
+                      )
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-muted-foreground text-center py-4">
+                          Tidak ada data
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
-          </div>
+          </BlurFade>
         </div>
       )}
 
