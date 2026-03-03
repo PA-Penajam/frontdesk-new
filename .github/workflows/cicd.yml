@@ -1,0 +1,73 @@
+name: CI/CD Frontdesk
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: frontdesk-production
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, Test, Build
+    runs-on: [self-hosted, windows, x64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  deploy:
+    name: Deploy to Production
+    runs-on: [self-hosted, windows, x64]
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy app in production directory
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $prodDir = "C:\pa-penajam\frontdesk-new"
+
+          Set-Location $prodDir
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+
+          if (-not (Test-Path ".env")) {
+            if (-not $env:ADMIN_PASSWORD_HASH) {
+              throw "Missing ADMIN_PASSWORD_HASH secret for first deployment."
+            }
+            Set-Content -Path ".env" -Value "ADMIN_PASSWORD_HASH=$($env:ADMIN_PASSWORD_HASH)"
+          }
+
+          pnpm install --frozen-lockfile
+          pnpm build
+          pm2 restart frontdesk-new --update-env
+          pm2 save
+        env:
+          ADMIN_PASSWORD_HASH: ${{ secrets.ADMIN_PASSWORD_HASH }}
