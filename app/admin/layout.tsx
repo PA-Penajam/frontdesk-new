@@ -27,7 +27,7 @@ function NavLink({ href, children, icon: Icon }: { href: string; children: React
   return (
     <SidebarMenuButton
       asChild
-      className={isActive ? "bg-slate-700 !text-white font-medium" : "!text-slate-100 hover:bg-slate-800 hover:!text-white"}
+      className={isActive ? "!bg-slate-700 !text-white font-medium hover:!bg-slate-700 hover:!text-white" : "!text-slate-200 hover:!bg-slate-800 hover:!text-white"}
     >
       <Link href={href}>
         <Icon className="size-4" />
@@ -80,7 +80,7 @@ export default function AdminLayout({
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     onClick={() => {
                       logoutAction()
                     }}
