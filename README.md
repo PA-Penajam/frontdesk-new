@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontdesk - Sistem Buku Tamu Digital
 
-## Getting Started
+Aplikasi buku tamu digital untuk pencatatan tamu dan pengunjung, dibangun menggunakan Next.js 16, React 19, dan SQLite.
 
-First, run the development server:
+## Fitur
+
+- Formulir buku tamu dan buku pengunjung
+- Dashboard admin dengan autentikasi
+- Pencarian dan filter berdasarkan tanggal
+- Export data ke CSV dan Excel
+- Laporan bulanan (PDF dan Excel)
+
+## Tech Stack
+
+| Komponen | Teknologi |
+| --- | --- |
+| Framework | Next.js 16.1.6 |
+| UI | React 19, Tailwind CSS 4, shadcn/ui |
+| Database | SQLite (better-sqlite3) |
+| Auth | bcryptjs + httpOnly cookie session |
+| Bahasa | TypeScript |
+
+## Persyaratan
+
+- Node.js v24 atau lebih tinggi
+- pnpm
+
+## Instalasi
+
+### 1. Clone repositori
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone git@github.com:PA-Penajam/frontdesk-new.git
+cd frontdesk-new
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependensi
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Konfigurasi environment
 
-## Learn More
+```bash
+cp .env.example .env
+```
 
-To learn more about Next.js, take a look at the following resources:
+Buka file `.env` dan isi `ADMIN_PASSWORD_HASH` dengan hash bcrypt dari password admin.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Generate hash menggunakan perintah berikut:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('PASSWORD_ANDA', 10).then(h => console.log(h))"
+```
 
-## Deploy on Vercel
+Salin output ke `.env`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+ADMIN_PASSWORD_HASH=$2a$10$hasil_hash_anda
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Build dan jalankan
+
+```bash
+# Build produksi
+pnpm build
+
+# Jalankan server
+pnpm start
+```
+
+Aplikasi berjalan di [http://localhost:3000](http://localhost:3000).
+
+## Development
+
+```bash
+pnpm dev
+```
+
+### Menjalankan test
+
+```bash
+pnpm test
+```
+
+### Lint
+
+```bash
+pnpm lint
+```
+
+## Migrasi Data (Opsional)
+
+Jika memiliki data lama dalam format JSON, jalankan:
+
+```bash
+pnpm migrate
+```
+
+## Struktur Route
+
+| Route | Deskripsi |
+| --- | --- |
+| `/` | Halaman utama |
+| `/buku-tamu` | Formulir buku tamu |
+| `/buku-pengunjung` | Formulir buku pengunjung |
+| `/login` | Login admin |
+| `/admin/daftar-tamu` | Daftar tamu (admin) |
+| `/admin/daftar-pengunjung` | Daftar pengunjung (admin) |
+| `/admin/laporan` | Laporan bulanan (admin) |
+
+## Deploy Produksi
+
+Panduan lengkap deployment ke VPS (PM2, Nginx, SSL, backup) tersedia di [DEPLOYMENT.md](DEPLOYMENT.md).
+
+## Lisensi
+
+Lihat file [LICENSE](LICENSE).

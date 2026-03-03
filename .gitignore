@@ -42,3 +42,10 @@ yarn-error.log*
 next-env.d.ts
 
 /data/
+
+# IDE
+.vscode/
+
+# AI tools
+.sisyphus/
+opencode.json
