@@ -27,7 +27,7 @@ function NavLink({ href, children, icon: Icon }: { href: string; children: React
   return (
     <SidebarMenuButton
       asChild
-      className={isActive ? "bg-slate-800 text-white" : ""}
+      className={isActive ? "bg-slate-700 !text-white font-medium" : "!text-slate-100 hover:bg-slate-800 hover:!text-white"}
     >
       <Link href={href}>
         <Icon className="size-4" />
@@ -44,7 +44,7 @@ export default function AdminLayout({
 }) {
   return (
     <SidebarProvider defaultOpen={true}>
-      <Sidebar className="bg-slate-900 text-slate-100">
+      <Sidebar className="text-slate-100 [&_[data-slot=sidebar-inner]]:bg-slate-900 [&_[data-slot=sidebar-inner]]:text-slate-100 [&_[data-slot=sidebar-content]]:text-slate-100 [&_[data-slot=sidebar-footer]]:text-slate-100">
         <SidebarHeader className="flex items-center justify-center h-16 border-b border-slate-800">
           <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Buku Tamu Admin
@@ -52,7 +52,7 @@ export default function AdminLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
+            <SidebarGroupLabel className="!text-slate-200">Menu Utama</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
