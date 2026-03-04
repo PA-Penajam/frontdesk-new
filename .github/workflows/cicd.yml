@@ -47,9 +47,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy app in production directory
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
           $prodDir = "C:\pa-penajam\frontdesk-new"
 
           Set-Location $prodDir
@@ -64,9 +65,18 @@ jobs:
             Set-Content -Path ".env" -Value "ADMIN_PASSWORD_HASH=$($env:ADMIN_PASSWORD_HASH)"
           }
 
+          if (Test-Path ".next") {
+            Remove-Item ".next" -Recurse -Force
+          }
+
           pnpm install --frozen-lockfile
           pnpm build
-          pm2 restart frontdesk-new --update-env
+          pm2 restart frontdesk-new --update-env --time
           pm2 save
+
+          $resp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:3003" -TimeoutSec 20
+          if ($resp.StatusCode -ne 200) {
+            throw "Health check failed. Expected HTTP 200, got $($resp.StatusCode)"
+          }
         env:
           ADMIN_PASSWORD_HASH: ${{ secrets.ADMIN_PASSWORD_HASH }}
