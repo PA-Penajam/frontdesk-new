@@ -1,8 +1,16 @@
 import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
 
+function normalizeAdminPasswordHash(hash: string | undefined): string | null {
+  if (!hash) {
+    return null
+  }
+
+  return hash.trim().replace(/\\\$/g, '$')
+}
+
 export async function verifyPassword(input: string): Promise<boolean> {
-  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH
+  const adminPasswordHash = normalizeAdminPasswordHash(process.env.ADMIN_PASSWORD_HASH)
   if (!adminPasswordHash) {
     return false
   }

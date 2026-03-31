@@ -24,6 +24,14 @@ describe('auth module', () => {
       expect(result).toBe(true)
     })
 
+    it('should return true for escaped bcrypt hash from env files', async () => {
+      process.env.ADMIN_PASSWORD_HASH =
+        '\\$2b\\$10\\$V8EVJi4eSqhS4OopPILIJehuk.4BNV52V1OcM4NIq5VAZQD.qGLfm'
+
+      const result = await verifyPassword('testpassword')
+      expect(result).toBe(true)
+    })
+
     it('should return false for wrong password', async () => {
       process.env.ADMIN_PASSWORD_HASH = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
 
