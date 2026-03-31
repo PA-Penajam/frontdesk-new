@@ -65,13 +65,23 @@ jobs:
             Set-Content -Path ".env" -Value "ADMIN_PASSWORD_HASH=$($env:ADMIN_PASSWORD_HASH)"
           }
 
+          # PM2 persists process env across restarts. Clear the deploy-step secret so
+          # the runtime process reads ADMIN_PASSWORD_HASH from .env instead.
+          Remove-Item Env:ADMIN_PASSWORD_HASH -ErrorAction SilentlyContinue
+
           if (Test-Path ".next") {
             Remove-Item ".next" -Recurse -Force
           }
 
           pnpm install --frozen-lockfile
           pnpm build
-          pm2 restart frontdesk-new --update-env --time
+
+          $existingApp = pm2 jlist | ConvertFrom-Json | Where-Object { $_.name -eq "frontdesk-new" }
+          if ($existingApp) {
+            pm2 delete frontdesk-new
+          }
+
+          pm2 start ecosystem.config.cjs --only frontdesk-new --time
           pm2 save
 
           $resp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:3003" -TimeoutSec 20
